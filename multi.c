@@ -131,9 +131,6 @@ int main(int argc, char *argv[]) {
         write(cfd, &data, sizeof data);
 
         close(cfd);
-
-        //char buffer[256];
-        //fgets(buffer, sizeof buffer, stdin);
     }
 
     message("exiting multibind process");
