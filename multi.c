@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <stdint.h>
 #include <stdarg.h>
+#include <string.h>
 #include <signal.h>
 #include <time.h>
 
@@ -79,6 +80,10 @@ int open_socket(void) {
         die("bind");
     }
 
+    if(listen(fd, 10) != 0) {
+        die("listen");
+    }
+
     return fd;
 }
 
@@ -108,9 +113,20 @@ int main(int argc, char *argv[]) {
     sigaction(SIGALRM, &act, NULL);
     alarm(1);
 
+    int fd = open_socket();
+
     while(!should_exit) {
-        char buffer[256];
-        fgets(buffer, sizeof buffer, stdin);
+        struct sockaddr_storage client;
+        socklen_t client_size = sizeof client;
+        int cfd = accept(fd, (struct sockaddr *)&client, &client_size);
+
+        uint32_t data = (uint32_t)generation;
+        write(cfd, &data, sizeof data);
+
+        close(cfd);
+
+        //char buffer[256];
+        //fgets(buffer, sizeof buffer, stdin);
     }
 
     message("exiting multibind process");
