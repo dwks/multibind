@@ -16,7 +16,7 @@
 #define STRING2(x) STRING(x)
 
 #define BEGIN_FORKING 2
-#define MAX_GENERATIONS 3
+#define MAX_GENERATIONS 4
 #define MAX_RUNTIME 10
 
 void die(const char *func) {
@@ -42,7 +42,7 @@ time_t launch;
 int has_forked = 0;
 void do_fork(void) {
     if(has_forked) return;
-    if(generation > MAX_GENERATIONS) return;
+    if(generation >= MAX_GENERATIONS) return;
 
     pid_t pid = fork();
     if(pid == 0) {  /* child */
@@ -71,10 +71,12 @@ int open_socket(void) {
         die("socket");
     }
 
+#if 1
     int optval = 1;
     if(setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof optval) != 0) {
         die("setsockopt");
     }
+#endif
 
     if(bind(fd, res->ai_addr, res->ai_addrlen) != 0) {
         die("bind");
@@ -103,6 +105,11 @@ void sigalrm_handler(int sig) {
 }
 
 int main(int argc, char *argv[]) {
+    if(argc > 1 && !strcmp(argv[1], "--nofork")) {
+        has_forked = 1;
+        if(argv[2]) generation = strtol(argv[2], NULL, 0);
+    }
+
     launch = time(NULL);
     message("starting multibind process");
 
